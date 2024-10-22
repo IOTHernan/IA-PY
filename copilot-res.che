@@ -1,0 +1,541 @@
+import os
+import pathlib
+import shutil
+import pyperclip
+import pickle
+import pyttsx3
+import speech_recognition as sr
+import pyaudio
+from google.cloud import translate_v2 as translate
+from googletrans import Translator
+from datetime import datetime
+from termcolor import colored
+
+# Función para sintetizar y reproducir voz a partir de texto.
+def speak_text(text):
+    engine = pyttsx3.init()
+    engine.say(text)
+    engine.runAndWait()
+
+# Función para traducir texto usando Google Cloud Translate.
+def translate_text_gcp(text, target='es'):
+    client = translate.Client()
+    result = client.translate(text, target_language=target)
+    return result['translatedText']
+
+# Función para traducir texto usando googletrans.
+def translate_text(text, src='en', dest='es'):
+    translator = Translator()
+    return translator.translate(text, src=src, dest=dest).text
+
+# Función para guardar un diccionario en un archivo.
+def save_dict(data_dict, file_path):
+    with open(file_path, 'wb') as file:
+        pickle.dump(data_dict, file)
+
+# Función para cargar un diccionario desde un archivo.
+def load_dict(file_path):
+    try:
+        with open(file_path, 'rb') as file:
+            return pickle.load(file)
+    except Exception as e:
+        print(f"Error cargando el diccionario: {e}")
+        return {}
+
+# Función para copiar contenido al portapapeles.
+def copy_to_clipboard(content):
+    pyperclip.copy(content)
+    print("El contenido ha sido copiado al portapapeles.")
+
+# Verifica si hay al menos min_free_space bytes libres en el disco.
+def check_disk_space(path, min_free_space):
+    total, used, free = shutil.disk_usage(path)
+    if free < min_free_space:
+        raise IOError(f"No hay suficiente espacio en disco. Espacio libre: {free} bytes")
+
+# Lee el contenido de un archivo y maneja posibles excepciones.
+def read_file(file_path):
+    try:
+        check_disk_space("/", 1024 * 1024 * 100)  # Por ejemplo, mínimo 100MB de espacio libre
+        with open(file_path, 'r') as file:
+            content = file.read()
+            return content
+    except FileNotFoundError:
+        print(f"Error: El archivo '{file_path}' no se encontró.")
+    except PermissionError:
+        print(f"Error: No tienes permisos para leer el archivo '{file_path}'.")
+    except IOError as e:
+        print(f"Error de E/S: {e}")
+
+# Genera el código Java Maven a partir del contenido leído.
+def generate_java_code(content):
+    java_code = "// Generado automáticamente\n" + content
+    return java_code
+
+# Imprime un saludo en color azul.
+def print_hi(name):
+    print(colored(f'Hi, {name}', 'blue'))  
+
+# Lee el contenido de un archivo binario.
+def read_binary_file(file_path):
+    try:
+        with open(file_path, 'rb') as file:
+            return file.read()
+    except Exception as e:
+        print(f"Error leyendo el archivo binario: {e}")
+        return None
+
+# Escribe datos en un archivo binario.
+def write_binary_file(file_path, data):
+    try:
+        with open(file_path, 'wb') as file:
+            file.write(data)
+    except Exception as e:
+        print(f"Error escribiendo el archivo binario: {e}")
+
+# Muestra la documentación de ayuda.
+def help(nombre):
+    print(colored(help.__doc__, 'green'))
+    print(colored("Crazy", 'red'))
+
+# Verifica si un archivo existe.
+def exist(nombre):
+    file_path = pathlib.Path(nombre)
+    return file_path.exists()
+
+# Verifica si un archivo existe y lo anuncia por voz.
+def che_if(nombre):
+    if os.path.exists(nombre):
+        speak_text('El archivo existe')
+        return True
+    else:
+        speak_text('El archivo no existe')
+        return False
+
+# Imprime la fecha y hora actual.
+def che_date():
+    print(datetime.now())
+
+# Verifica si PyAudio y speech_recognition están instalados correctamente.
+def verifica_audio():
+    try:
+        pyaudio.PyAudio()
+        print("PyAudio está instalado correctamente.")
+    except Exception as e:
+        print(f"Error con PyAudio: {e}")
+    try:
+        recognizer = sr.Recognizer()
+        print("speech_recognition está instalado correctamente.")
+    except Exception as e:
+        print(f"Error con speech_recognition: {e}")
+
+# Analiza la entrada del usuario y ejecuta la función correspondiente.
+def analyze_input(user_input):
+    print(f"Analizando entrada: {user_input}")
+    if user_input == "saludo":
+        print("¡Hola! ¿Cómo estás?")
+    else:
+        print("Entrada no reconocida.")
+
+# Reconoce y transcribe el discurso usando el micrófono.
+def recognize_speech():
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Ajustando al ruido ambiente, por favor espere...")
+        recognizer.adjust_for_ambient_noise(source)
+        print("Di algo!")
+        audio = recognizer.listen(source)
+        try:
+            text = recognizer.recognize_google(audio)
+            return text
+        except sr.UnknownValueError:
+            print("No pude entender el audio.")
+            return ""
+        except sr.RequestError as e:
+            print(f"No pude solicitar resultados del servicio de reconocimiento de voz; {e}")
+            return ""
+
+
+-----
+
+import os
+import pathlib
+import shutil
+import platform
+from datetime import datetime
+from termcolor import colored
+
+def che_cd(unidad=None, directorio='.'):
+    """
+    Cambia el directorio actual a una unidad y/o directorio específico.
+    :param unidad: La letra de la unidad en Windows (por ejemplo, 'D'). Ignorada en Linux.
+    :param directorio: El directorio al que cambiar. Utiliza '/' como separador en Linux.
+    :return: None
+    :raises: OSError si el sistema operativo no es soportado, FileNotFoundError si el directorio no existe, OSError si la unidad no es válida.
+    """
+    sistema = platform.system()
+    try:
+        if sistema == 'Windows':
+            if unidad:
+                try:
+                    os.chdir(f"{unidad}:\\")
+                except FileNotFoundError:
+                    raise OSError(f"Unidad '{unidad}:' no encontrada o no es válida.")
+            try:
+                os.chdir(directorio)
+            except FileNotFoundError:
+                raise FileNotFoundError(f"El directorio '{directorio}' no existe.")
+        elif sistema == 'Linux':
+            try:
+                os.chdir(directorio)
+            except FileNotFoundError:
+                raise FileNotFoundError(f"El directorio '{directorio}' no existe.")
+        else:
+            raise OSError("Sistema operativo no soportado.")
+        print("Directorio actual:", os.getcwd())
+    except OSError as e:
+        print(f"Error: {e}")
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+
+def help_che_cd():
+    """
+    Muestra la ayuda para la función che_cd.
+    """
+    print("""
+    Uso de che_cd:
+    che_cd(unidad=None, directorio='.')
+    :param unidad: La letra de la unidad en Windows (por ejemplo, 'D'). Ignorada en Linux.
+    :param directorio: El directorio al que cambiar. Utiliza '/' como separador en Linux.
+    - Cambia el directorio actual a la unidad y directorio especificado.
+    - Si la unidad no es válida en Windows, se muestra un error.
+    - Si el directorio no existe, se muestra un error.
+    - En Linux, solo se cambia el directorio.
+    - Si el sistema operativo no es soportado, se muestra un error.
+    """)
+
+def type_archivo(nombre):
+    """Función para visualizar un archivo en modo scroll en la terminal."""
+    if os.path.exists(nombre):
+        def main(stdscr):
+            curses.curs_set(0)
+            with open(nombre, 'r') as file:
+                lines = file.readlines()
+            height, width = stdscr.getmaxyx()
+            current_line = 0
+            max_lines = len(lines)
+            while True:
+                stdscr.clear()
+                for i, line in enumerate(lines[current_line:current_line + height - 1]):
+                    stdscr.addstr(i, 0, line[:width - 1])
+                stdscr.refresh()
+                key = stdscr.getch()
+                if key == curses.KEY_UP and current_line > 0:
+                    current_line -= 1
+                elif key == curses.KEY_DOWN and current_line < max_lines - height + 1:
+                    current_line += 1
+                elif key == ord('q'):
+                    break
+        curses.wrapper(main)
+    else:
+        print(f"El archivo '{nombre}' no existe.")
+
+def get_free_space(path):
+    if platform.system() == 'Windows':
+        total, used, free = shutil.disk_usage(path)
+    else:
+        statvfs = os.statvfs(path)
+        free = statvfs.f_frsize * statvfs.f_bavail
+    return free
+
+def get_volume_info(path):
+    try:
+        if platform.system() == 'Windows':
+            drive = os.path.splitdrive(path)[0]
+            if not drive:
+                drive = 'C:'
+            volume_info = win32api.GetVolumeInformation(drive)
+            volume_label = volume_info[0]
+            serial_number = volume_info[1]
+            return volume_label, serial_number
+        else:
+            return "N/A", "N/A"
+    except Exception as e:
+        print(f"Error obteniendo información del volumen: {e}")
+        return "N/A", "N/A"
+
+def list_directory(path='.', show_all=False, detailed=False):
+    try:
+        volume_label, serial_number = get_volume_info(path)
+        print(f'Directorio: {path}')
+        print(colored(f"Directorio listado: {path}", 'green'))
+        print(f"Fecha y hora: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"Volumen: {volume_label} (Número de serie: {serial_number})")
+        entries = os.listdir(path)
+        if not show_all:
+            entries = [entry for entry in entries if not entry.startswith('.')]
+        total_size = 0
+        file_count = 0
+        dir_count = 0
+        for entry in entries:
+            entry_path = os.path.join(path, entry)
+            if os.path.isdir(entry_path):
+                dir_count += 1
+                entry_type = 'Directorio'
+                size = 'N/A'
+            else:
+                file_count += 1
+                entry_type = 'Archivo'
+                stats = os.stat(entry_path)
+                size = stats.st_size
+                total_size += size
+            if detailed:
+                date_modified = datetime.fromtimestamp(stats.st_mtime).strftime('%Y-%m-%d %H:%M:%S') if not os.path.isdir(entry_path) else 'N/A'
+                print(f"{entry: <30} {entry_type: <10} {size: >10} bytes {date_modified}")
+        print(f"\nCantidad de archivos: {file_count}")
+        print(f"Tamaño total de archivos: {total_size} bytes ({total_size / (1024 * 1024):.2f} MB)")
+        print(f"Cantidad de directorios: {dir_count}")
+        print(f"Espacio libre en disco: {get_free_space(path) / (1024 * 1024):.2f} MB")
+    except FileNotFoundError:
+        print(f"Error: No se pudo encontrar el directorio {path}")
+
+def create_directory(directory_path):
+    """Crea un directorio si no existe."""
+    if not os.path.exists(directory_path):
+        try:
+            os.makedirs(directory_path, exist_ok=True)
+            print(f"Directorio '{directory_path}' creado correctamente.")
+        except OSError as e:
+            print(f"Error al crear el directorio: {e}")
+    else:
+        print(f"Error el directorio '{directory_path}' ya existe.")
+
+def rename_directory(old_directory_path, new_directory_path):
+    """Renombra un directorio."""
+    if os.path.exists(old_directory_path) & os.path.exists(new_directory_path):
+        try:
+            os.rename(old_directory_path, new_directory_path)
+            print(f"Directorio '{old_directory_path}' renombrado a '{new_directory_path}'.")
+        except OSError as e:
+            print(f"Error al renombrar el directorio: {e}")
+    else:
+        print(f"El directorio '{old_directory_path}' no existe.")
+
+def delete_directory(directory_path):
+    """Elimina un directorio."""
+    if os.path.exists(directory_path):
+        try:
+            shutil.rmtree(directory_path)
+            print(f"Directorio '{directory_path}' eliminado correctamente.")
+        except OSError as e:
+            print(f"Error al eliminar el directorio: {e}")
+    else:
+        print(f"El directorio '{directory_path}' no existe.")
+
+
+        ---
+
+import os
+import pathlib
+import shutil
+import platform
+import pyttsx3
+import PyPDF2
+from termcolor import colored
+from datetime import datetime
+import speech_recognition as sr
+
+def speak_text(text):
+    engine = pyttsx3.init()
+    engine.say(text)
+    engine.runAndWait()
+
+def che_cd(unidad=None, directorio='.'):
+    sistema = platform.system()
+    try:
+        if sistema == 'Windows':
+            if unidad:
+                os.chdir(f"{unidad}:\\")
+            os.chdir(directorio)
+        elif sistema == 'Linux':
+            os.chdir(directorio)
+        else:
+            raise OSError("Sistema operativo no soportado.")
+        print("Directorio actual:", os.getcwd())
+    except OSError as e:
+        print(f"Error: {e}")
+
+def type_archivo(nombre):
+    if os.path.exists(nombre):
+        def main(stdscr):
+            curses.curs_set(0)
+            with open(nombre, 'r') as file:
+                lines = file.readlines()
+            height, width = stdscr.getmaxyx()
+            current_line = 0
+            max_lines = len(lines)
+            while True:
+                stdscr.clear()
+                for i, line in enumerate(lines[current_line:current_line + height - 1]):
+                    stdscr.addstr(i, 0, line[:width - 1])
+                stdscr.refresh()
+                key = stdscr.getch()
+                if key == curses.KEY_UP and current_line > 0:
+                    current_line -= 1
+                elif key == curses.KEY_DOWN and current_line < max_lines - height + 1:
+                    current_line += 1
+                elif key == ord('q'):
+                    break
+        curses.wrapper(main)
+    else:
+        print(f"El archivo '{nombre}' no existe.")
+
+def get_free_space(path):
+    if platform.system() == 'Windows':
+        total, used, free = shutil.disk_usage(path)
+    else:
+        statvfs = os.statvfs(path)
+        free = statvfs.f_frsize * statvfs.f_bavail
+    return free
+
+def list_directory(path='.', show_all=False, detailed=False):
+    try:
+        entries = os.listdir(path)
+        if not show_all:
+            entries = [entry for entry in entries if not entry.startswith('.')]
+        for entry in entries:
+            print(entry)
+    except FileNotFoundError:
+        print(f"Error: No se pudo encontrar el directorio {path}")
+
+def create_directory(directory_path):
+    if not os.path.exists(directory_path):
+        try:
+            os.makedirs(directory_path, exist_ok=True)
+            print(f"Directorio '{directory_path}' creado correctamente.")
+        except OSError as e:
+            print(f"Error al crear el directorio: {e}")
+    else:
+        print(f"El directorio '{directory_path}' ya existe.")
+
+def rename_directory(old_directory_path, new_directory_path):
+    if os.path.exists(old_directory_path):
+        try:
+            os.rename(old_directory_path, new_directory_path)
+            print(f"Directorio '{old_directory_path}' renombrado a '{new_directory_path}'.")
+        except OSError as e:
+            print(f"Error al renombrar el directorio: {e}")
+    else:
+        print(f"El directorio '{old_directory_path}' no existe.")
+
+def delete_directory(directory_path):
+    if os.path.exists(directory_path):
+        try:
+            shutil.rmtree(directory_path)
+            print(f"Directorio '{directory_path}' eliminado correctamente.")
+        except OSError as e:
+            print(f"Error al eliminar el directorio: {e}")
+    else:
+        print(f"El directorio '{directory_path}' no existe.")
+
+def translate_text(text, src='en', dest='es'):
+    translator = Translator()
+    return translator.translate(text, src=src, dest=dest).text
+
+def analyze_input(user_input):
+    print(f"Analizando entrada: {user_input}")
+    if user_input.lower() == "saludo":
+        print("¡Hola! ¿Cómo estás?")
+    else:
+        print("Entrada no reconocida.")
+
+def recognize_speech():
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Ajustando al ruido ambiente, por favor espere...")
+        recognizer.adjust_for_ambient_noise(source)
+        print("Di algo!")
+        audio = recognizer.listen(source)
+        try:
+            text = recognizer.recognize_google(audio)
+            return text
+        except sr.UnknownValueError:
+            print("No pude entender el audio.")
+            return ""
+        except sr.RequestError as e:
+            print(f"No pude solicitar resultados del servicio de reconocimiento de voz; {e}")
+            return ""
+
+def main():
+    while True:
+        directorio_actual = os.getcwd()
+        user_input = input(colored(f"{directorio_actual}>",'red'))
+        if user_input.lower() == "exit":
+            speak_text("Gracias por utilizar mi aplicación.")
+            print("Saliendo...")
+            break
+
+        parts = user_input.split()
+        if len(parts) == 0:
+            continue
+
+        comando = parts[0].lower()
+        if comando == "traducir" and len(parts) > 1:
+            translate_text(parts[1], parts[2], parts[3])
+        elif comando == "md" or comando == "mkdir":
+            if len(parts) > 1:
+                create_directory(parts[1])
+        elif comando == "rmdir" or comando == "rm":
+            if len(parts) > 1:
+                delete_directory(parts[1])
+        elif comando == "rename" or comando == "mv":
+            if len(parts) > 2:
+                speak_text(f'Renombrando {parts[1]} a {parts[2]}')
+                rename_directory(parts[1], parts[2])
+        elif comando == "exists" and len(parts) > 1:
+            che_if(parts[1])
+        elif comando == "help":
+            speak_text("Ayuda")
+            help()
+        elif comando == "date":
+            speak_text("La fecha actual es:")
+            che_date()
+        elif comando == "audio":
+            verifica_audio()
+        elif comando == "type" and len(parts) > 1:
+            speak_text('Visualizando archivo')
+            type_archivo(parts[1])
+        elif comando == "typepdf" and len(parts) > 1:
+            speak_text('Visualizando archivo ')
+            try:
+                with open(parts[1], "rb") as f:
+                    reader = PyPDF2.PdfReader(f)
+                    for page in reader.pages:
+                        print(page.extract_text())
+            except FileNotFoundError:
+                print("El archivo no fue encontrado.")
+            except Exception as e:
+                print(f"Ocurrió un error al leer el PDF: {e}")
+        elif comando == "dir":
+            speak_text('Listando archivos')
+            path = '.'
+            show_all = False
+            detailed = False
+            for part in parts[1:]:
+                if part == '/a':
+                    show_all = True
+                elif part == '/w':
+                    detailed = False
+                elif part == '/l':
+                    detailed = True
+                else:
+                    path = part
+            list_directory(path=path, show_all=show_all, detailed=detailed)
+        else:
+            print("Comando no reconocido. Por favor, ingresa 'dir [path] [opciones]' o 'exit' para salir.")
+
+        print(colored("Ahora escuchando...", "yellow"))
+        voice_input = recognize_speech()
+        if voice_input:
+            print(f"Entrada de voz: {voice_input}")
+            if voice
