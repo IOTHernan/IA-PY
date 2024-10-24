@@ -1,0 +1,96 @@
+def main():
+    print("Di algo para que sea reconocido")
+    recognized_text = recognize_speech()
+    if recognized_text:
+        print(f"Reconocido: {recognized_text}")
+        analyze_input(recognized_text)
+    else:
+        print("No se reconoció nada.")
+
+if __name__ == "__main__":
+    main()
+
+
+---------------------
+
+import threading
+
+
+def recognize_speech():
+	# Acá iría tu código de reconocimiento de voz
+	print("Escuchando...")
+
+
+def get_user_input():
+	# El input de texto
+	user_input = input("Escribí algo: ")
+	print(f"Texto ingresado: {user_input}")
+
+
+if __name__ == "__main__":
+	# Creamos threads para ejecutar ambas funciones simultáneamente
+	t1 = threading.Thread(target=recognize_speech)
+	t2 = threading.Thread(target=get_user_input)
+
+	# Iniciamos ambos threads
+	t1.start()
+	t2.start()
+
+	# Esperamos a que terminen ambos
+	t1.join()
+	t2.join()
+
+
+-------------------------
+
+import threading
+
+
+def recognize_speech():
+	# Acá iría tu código de reconocimiento de voz
+	print("Escuchando...")
+
+
+def get_user_input():
+	user_input = input("Escribí algo: ")
+	print(f"Texto ingresado: {user_input}")
+
+
+def main():
+	# Creamos threads para ejecutar ambas funciones simultáneamente
+	t1 = threading.Thread(target=recognize_speech)
+	t2 = threading.Thread(target=get_user_input)
+
+	# Iniciamos ambos threads
+	t1.start()
+	t2.start()
+
+	# Esperamos a que terminen ambos
+	t1.join()
+	t2.join()
+
+
+if __name__ == "__main__":
+	main()
+
+
+-----------------------------
+
+def main():
+    # Ejecutar el reconocimiento de voz en un thread
+    speech_thread = threading.Thread(target=recognize_speech)
+    speech_thread.start()
+
+    # Obtener la entrada del usuario
+    user_input = get_user_input()
+
+    # Puedes hacer algo con el user_input aquí si es necesario
+    print(f"Texto ingresado: {user_input}")
+
+    # Esperar a que termine el reconocimiento de voz (opcional)
+    speech_thread.join()
+
+if __name__ == "__main__":
+    main()
+
+---------------------
