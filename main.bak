@@ -1,0 +1,437 @@
+# This is a sample Python script.
+# Press Mayús+F10 to execute it or replace it with your code.
+# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import platform
+from logging import exception
+
+from django.template.defaultfilters import length
+
+if platform.system() == 'Windows':
+	try:
+		import windows_curses as curses
+		import win32api
+	except ImportError:
+		print("Instala 'windows-curses' con pip para usar curses en Windows.")
+else:
+	import curses
+
+# Tu código que usa curses va aquí
+
+# import argparse
+import PyPDF2
+import os
+import pyperclip
+import pickle
+import speech_recognition as sr
+import pyaudio
+from termcolor import colored
+
+import threading
+
+# My imports
+from disk import create_directory, delete_directory, rename_directory
+from disk import type_archivo
+from disk import list_directory
+from disk import check_disk_space
+from disk import get_free_space
+from disk import get_volume_info
+from disk import che_if
+
+from che_text import speak_text, translate_text, translate_text_gcp
+import pathlib
+import shutil
+import pyttsx3
+import time
+import psutil
+from google.cloud import translate_v2 as translate
+from datetime import datetime
+import httpx
+from googletrans import Translator
+
+def save_dict(data_dict, file_path):
+	"""
+	Salvado bendiciones.
+	:param data_dict:
+	:param file_path:
+	:return:
+	"""
+	with open(file_path, 'wb') as file:
+		pickle.dump(data_dict, file)
+
+
+def load_dict(file_path):
+	"""
+	Lectura del diccionario.
+	:param file_path:
+	:return:
+	"""
+	try:
+		with open(file_path, 'rb') as file:
+			return pickle.load(file)
+	except Exception as e:
+		print(f"Error cargando el diccionario: {e}")
+		return {}
+
+
+# def read_file(file_path):
+#     """Lee el contenido de un archivo."""
+#     try:
+#         with open(file_path, 'r') as file:
+#             content = file.read()
+#             return content
+#     except FileNotFoundError:
+#         print(f"Error: El archivo '{file_path}' no se encontró.")
+#     except PermissionError:
+#         print(f"Error: No tienes permisos para leer el archivo '{file_path}'.")
+#     except IOError as e:
+#         print(f"Error de E/S: {e}")
+#     return None
+def copy_to_clipboard(content):
+	"""
+	Copia el contenido proporcionado al portapapeles.
+	"""
+	pyperclip.copy(content)
+	print("El contenido ha sido copiado al portapapeles.")
+
+
+def read_file(file_path):
+	"""
+	Lee el contenido de un archivo y maneja posibles excepciones.
+	"""
+	try:
+		# Verificar espacio en disco antes de leer el archivo
+		check_disk_space("/", 1024 * 1024 * 100)  # Por ejemplo, mínimo 100MB de espacio libre
+		with open(file_path, 'r') as file:
+			content = file.read()
+			return content
+	except FileNotFoundError:
+		print(f"Error: El archivo '{file_path}' no se encontró.")
+	except PermissionError:
+		print(f"Error: No tienes permisos para leer el archivo '{file_path}'.")
+	except IOError as e:
+		print(f"Error de E/S: {e}")
+
+
+def generate_java_code(content):
+	"""
+	Genera el código Java Maven a partir del contenido leído.
+	"""
+	# Implementar la lógica para generar el código aquí
+	# Esto es solo un ejemplo de cómo podrías empezar
+	java_code = "// Generado automáticamente\n"
+	java_code += content
+	return java_code
+
+
+def print_hi(name):
+	"""
+	Increíble con la lumbeis.
+	:param name:
+	:return:
+	"""
+	# Use a breakpoint in the code line below to debug your script.
+	print(colored(f'Hi, {name}', 'blue'))  # Press Ctrl+F8 to toggle the breakpoint.
+
+
+def read_binary_file(file_path):
+	"""
+	Lee un archivo vídeo
+	:param file_path:
+	:return:
+	"""
+	try:
+		with open(file_path, 'rb') as file:
+			return file.read()
+	except Exception as e:
+		print(f"Error leyendo el archivo binario: {e}")
+		return None
+
+
+def write_binary_file(file_path, data):
+	"""
+	Escribe un archivo binario
+	:param file_path:
+	:param data:
+	:return:
+	"""
+	try:
+		with open(file_path, 'wb') as file:
+			file.write(data)
+	except Exception as e:
+		print(f"Error escribiendo el archivo binario: {e}")
+
+
+# ▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░
+
+def help(funcion, parametro=None):
+	"""
+	 Muestra la ayuda para la función especificada, filtrando por parámetro si se proporciona.
+
+	 Parámetros:
+	 funcion (callable): La función para la que se desea mostrar la ayuda.
+	 parametro (str, opcional): El nombre del parámetro a filtrar en la ayuda.
+	 """
+	doc = funcion.__doc__
+
+	if parametro:
+		# Buscamos si el parámetro está mencionado en la docstring
+		if parametro in doc:
+			print(doc)
+		else:
+			print(f"No se encontró información sobre el parámetro '{parametro}' en {funcion.__name__}.")
+	else:
+		print(doc)
+		print(colored(help.__doc__, 'green'))
+
+
+#        print(colored("Crazy", 'red'))
+#        print(colored('Hello, World!', 'red', 'on_black', ['bold', 'blink']))
+#        colored('Hello, World!', 'green')
+
+
+def che_date():
+	"""
+	Imprime la fecha.
+	:return:
+	"""
+	from datetime import datetime
+	print(datetime.now())
+
+
+# ▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░
+def get_user_input():
+	"""
+	Esta función es retorna la entrada por teclado.
+	:return:
+	"""
+	user_input_text: str = input()
+	return user_input_text
+
+
+def verifica_audio():
+	"""
+	Esta función verifica el audio entrada.
+	:return:
+	"""
+	try:
+		pyaudio.PyAudio()
+		print("PyAudio está instalado correctamente.")
+	except Exception as e:
+		print(f"Error con PyAudio: {e}")
+
+	# Verifica si speech_recognition está funcionando
+	try:
+		recognizer = sr.Recognizer()
+		print("speech_recognition está instalado correctamente.")
+	except Exception as e:
+		print(f"Error con speech_recognition: {e}")
+
+
+def analyze_input(user_input):
+	# Aquí puedes agregar la lógica para analizar la entrada y ejecutar la función correspondiente
+	print(f"Analizando entrada: {user_input}")
+	# Ejemplo: Solo para propósitos de demostración
+	if user_input == "saludo":
+		print("¡Hola! ¿Cómo estás?")
+	else:
+		print("Entrada no reconocida.")
+
+
+def recognize_speech():
+	recognizer = sr.Recognizer()
+	with sr.Microphone() as source:
+		print("Recognize_speech Ajustando al ruido ambiente, por favor espere...")
+		recognizer.adjust_for_ambient_noise(source)
+		print("Recognize_speech Te escucho!")
+		audio = recognizer.listen(source)
+		try:
+			text = recognizer.recognize_google(audio)
+			return text
+		except sr.UnknownValueError:
+			print("Recognize_speech No puede entender el audio.")
+			return ""
+		except sr.RequestError as e:
+			print(f"No pude solicitar resultados del servicio de reconocimiento de voz; {e}")
+			return ""
+
+
+def entrada_voz():
+	# También puedes escuchar entrada por voz
+	print(colored("entrada_voz Ahora escuchando...", "yellow"))
+	voice_input = recognize_speech()
+	print(f"Entrada de voz: {voice_input}")
+	if voice_input:
+		print(f"Entrada de voz: {voice_input}")
+		if voice_input.lower() == "exit":
+			print("Saliendo...")
+
+		analyze_input(voice_input)
+
+	# Mostrar prompt nuevamente
+	print("Ingrese otro comando o diga algo (escriba 'exit' para salir):")
+
+
+# ▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░
+
+def main():
+	"""
+	Este es el procedimiento central
+	:return:
+	"""
+	while True:
+		# Mostrar el prompt tipo DOS
+		directorio_actual = os.getcwd()
+		# prompt_text = f"{directorio_actual}> "
+		prompt_text = colored(f"{directorio_actual}>", 'red')
+		print(prompt_text, end='')
+		# speak_text(prompt_text)
+
+		# Creamos threads para ejecutar ambas funciones simultáneamente
+		# t1 = threading.Thread(target=recognize_speech)
+		t1 = threading.Thread(target=entrada_voz)
+		t2 = threading.Thread(target=get_user_input)
+
+		# Iniciamos ambos threads
+		t1.start()
+		t2.start()
+
+		# Esperamos a que terminen ambos
+		t1.join()
+		t2.join()
+
+		print("Estás en main...")
+		print("voice input:", voice_input)
+
+		user_input = get_user_input()
+		parts = user_input.split()
+
+		if len(parts) == 0:
+			print("Entrada vacia")
+			continue
+
+		command = parts[0].lower()
+
+		if command == "exit" or voice_input.lower() == "exit":
+			speak_text("Gracias por utilizar mi aplicación.  ")
+			print("Saliendo...")
+			break
+		else:
+			parts = user_input.split()
+			print("len parts", len(parts))
+
+		if len(parts) >= 1:
+			for x in range(len(parts)):
+				print(f"{x} {parts[x]}")
+		else:
+			continue
+
+		if command == "traducir":
+			if len(parts) > 1:
+				translate_text(parts[1], parts[2], parts[3])
+				continue
+		elif command == "md" or command == "mkdir":
+			if len(parts) > 1:
+				directory_path = parts[1]
+				create_directory(directory_path)
+				continue
+		elif command == "rmdir" or command == "rm":
+			if len(parts) > 1:
+				directory_path = parts[1]
+				delete_directory(directory_path)
+				continue
+		elif command == "rename" or command == "mv":
+			if len(parts) > 2:
+				old_directory_path = parts[1]
+				new_directory_path = parts[2]
+				speak_text('Renombrando {old_directory_path} a {new_directory_path}')
+				rename_directory(old_directory_path, new_directory_path)
+				continue
+		elif command == "exists":
+			if len(parts) > 1:
+				directory_path = parts[1]
+				che_if(directory_path)
+				continue
+		elif command == "help":
+			help(parts)
+			pass
+		elif command == "date":
+			speak_text("La fecha actual es:")
+			che_date()
+			continue
+		elif command == "audio":
+			verifica_audio()
+			continue
+		elif command == "get_free_space":
+			pass
+		elif command == "get_volume_info":
+			pass
+		elif command == 'type':
+			speak_text('Visualizando archivo')
+			if len(parts) > 1:
+				archivo = parts[1]
+				type_archivo(archivo)
+		elif command == 'typepdf':
+			speak_text('Visualizando archivo ')
+			if len(parts) > 1:
+				try:
+					with open(parts[1], "rb") as f:
+						reader = PyPDF2.PdfReader(f)
+						for page in reader.pages:
+							print(page.extract_text())
+				except FileNotFoundError:
+					print("El archivo no fue encontrado.")
+				except Exception as e:
+					print(f"Ocurrió un error al leer el PDF: {e}")
+		elif command == 'dir':
+			speak_text('Listando archivos')
+			path = '.'
+			show_all = False
+			detailed = False
+
+			if len(parts) > 1:
+				for part in parts[1:]:
+					if part == '/a':
+						show_all = True
+					elif part == '/w':
+						detailed = False
+					elif part == '/l':
+						detailed = True
+					else:
+						path = part
+
+			# Llamar a la función con los parámetros obtenidos
+			list_directory(path=path, show_all=show_all, detailed=detailed)
+		else:
+			print("Main - Comando no reconocido. Por favor, ingresa 'dir [path] [opciones]' o 'exit' para salir.")
+		# continue
+
+		# Analizar entrada por teclado
+		# analyze_input(user_input)
+
+if __name__ == "__main__":
+	global voice_input
+	voice_input = ''
+	print("Hola! Soy AtomSophy! ¿Cómo estás?, usando PyCharm")
+	speak_text("Hola soy AtomSophy, ¿cómo estás?, usando PyCharm")
+	# Ejemplo de uso
+	# translated = translate_text('Hello, world!', 'es')
+	# print(translated)  # Salida esperada: '¡Hola, mundo!'
+	# t = translate_text("Common")
+	# print("Translate: ")
+	# print(t)
+	# help()
+	main()
+	# file_path = "ruta/al/archivo.txt"
+	# content = read_file(file_path)
+	# if content:
+	#     java_code = generate_java_code(content)
+	#     print(java_code)
+
+	# recognize_speech()
+
+	# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+	# if __name__ == "__main__":
+	#     file_path = "ruta/al/archivo.txt"
+	#     content = read_file(file_path)
+	#     if content:
+	#   copy_to_clipboard(content)

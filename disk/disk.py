@@ -2,11 +2,14 @@
 import curses
 import datetime
 import os
+import pathlib
 import platform
 import shutil
 
 import win32api
 from termcolor import colored
+
+from che_text.text_module import speak_text
 
 
 def che_cd(unidad=None, directorio='.'):
@@ -225,8 +228,8 @@ def rename_directory(old_directory_path, new_directory_path):
 
 def delete_directory(directory_path):
     """
-    Que eliminar directorio.
-    :param directory_path:
+    Eliminar directorio.
+    :param directory_path: [directorio]
     :return:
     """
     if os.path.exists(directory_path):
@@ -237,4 +240,41 @@ def delete_directory(directory_path):
             print(f"Error al eliminar el directorio: {e}")
     else:
         print(f"El directorio '{directory_path}' no existe.")
+
+
+def check_disk_space(path, min_free_space):
+    """
+    Verifica si hay al menos min_free_space bytes libres en el disco.
+    """
+    total, used, free = shutil.disk_usage(path)
+    if free < min_free_space:
+        raise IOError("No hay suficiente espacio en disco. Espacio libre: {} bytes".format(free))
+
+
+def exist(nombre):
+    """
+    Y vuelve true sin archivos existe.
+    :param nombre:
+    :return:
+    """
+    file_path = pathlib.Path(nombre)
+    if file_path.exists():
+        return True
+    else:
+        return False
+
+
+def che_if(nombre):
+    """
+    Llegó el 9 verdaderos y los archivos existe.
+    :param nombre:
+    :return:
+    """
+    if os.path.exists(nombre):
+        speak_text('El archivo existe')
+        return True
+    else:
+        speak_text('El archivo no existe')
+        return False
+
 
